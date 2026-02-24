@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stavební deník – Bytový dům Prosecká</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:    #1e40af;
+      --blue-d:  #1e3a8a;
+      --blue-l:  #dbeafe;
+      --blue-50: #eff6ff;
+      --orange:  #ea580c;
+      --green:   #15803d;
+      --green-l: #dcfce7;
+      --gray-50: #f8fafc;
+      --gray-100:#f1f5f9;
+      --gray-200:#e2e8f0;
+      --gray-300:#cbd5e1;
+      --gray-400:#94a3b8;
+      --gray-600:#475569;
+      --gray-700:#334155;
+      --gray-800:#1e293b;
+    }
+    body { font-family: system-ui, sans-serif; background: var(--gray-100); color: var(--gray-800); }
+
+    /* Topbar */
+    .topbar { background: var(--blue-d); color: #fff; padding: 0 24px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; text-decoration: none; color: #fff; }
+    .topbar-logo span { font-size: 1.4rem; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; opacity: 0.8; }
+    .breadcrumb a { color: #fff; text-decoration: none; }
+    .breadcrumb a:hover { opacity: 1; text-decoration: underline; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+
+    /* Layout */
+    .layout { display: flex; min-height: calc(100vh - 58px); }
+
+    /* Sidebar – seznam dnů */
+    .day-sidebar { width: 240px; background: #fff; border-right: 1px solid var(--gray-200); display: flex; flex-direction: column; flex-shrink: 0; }
+    .day-sidebar-header { padding: 16px; border-bottom: 1px solid var(--gray-200); }
+    .day-sidebar-header h3 { font-size: 0.875rem; font-weight: 700; color: var(--gray-800); margin-bottom: 10px; }
+    .month-nav { display: flex; align-items: center; justify-content: space-between; }
+    .month-nav button { background: none; border: none; cursor: pointer; color: var(--gray-600); font-size: 1rem; padding: 2px 6px; border-radius: 4px; }
+    .month-nav button:hover { background: var(--gray-100); }
+    .month-label { font-weight: 700; font-size: 0.875rem; color: var(--gray-800); }
+    .btn-new-day { width: 100%; margin-top: 10px; background: var(--blue); color: #fff; border: none; padding: 8px; border-radius: 7px; font-weight: 700; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
+    .btn-new-day:hover { background: var(--blue-d); }
+    .day-list { flex: 1; overflow-y: auto; }
+    .day-item { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.1s; }
+    .day-item:hover { background: var(--gray-50); }
+    .day-item.active { background: var(--blue-50); border-right: 3px solid var(--blue); }
+    .day-item-date { font-size: 0.875rem; font-weight: 700; color: var(--gray-800); display: flex; justify-content: space-between; align-items: center; }
+    .day-item-date .weather-icon { font-size: 1rem; }
+    .day-item-meta { font-size: 0.75rem; color: var(--gray-400); margin-top: 2px; }
+    .day-item.empty .day-item-date { color: var(--gray-400); }
+    .dot-empty { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-300); }
+    .dot-done  { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+    /* Hlavní obsah */
+    .main { flex: 1; overflow-y: auto; }
+
+    /* Stavba info bar */
+    .stavba-info { background: #fff; border-bottom: 1px solid var(--gray-200); padding: 12px 28px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .stavba-info-name { font-weight: 800; font-size: 1rem; color: var(--gray-800); }
+    .stavba-info-item { font-size: 0.8rem; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
+    .badge-sm { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 100px; background: var(--green-l); color: var(--green); }
+
+    /* Zápis dne */
+    .day-content { padding: 24px 28px; max-width: 900px; }
+    .day-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .day-date-big { font-size: 1.3rem; font-weight: 800; color: var(--gray-800); }
+    .day-date-big span { font-weight: 400; color: var(--gray-400); font-size: 1rem; margin-left: 8px; }
+    .btn-save { background: var(--blue); color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 0.875rem; cursor: pointer; font-family: inherit; }
+    .btn-save:hover { background: var(--blue-d); }
+
+    /* Sekce zápisu */
+    .section { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px 22px; margin-bottom: 16px; }
+    .section-title { font-size: 0.75rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+
+    /* Počasí */
+    .weather-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .weather-chip { padding: 8px 14px; border-radius: 100px; border: 1.5px solid var(--gray-200); background: #fff; cursor: pointer; font-size: 0.9rem; transition: all 0.1s; font-family: inherit; }
+    .weather-chip:hover { border-color: var(--blue); }
+    .weather-chip.selected { border-color: var(--blue); background: var(--blue-50); font-weight: 700; }
+    .weather-note { margin-top: 12px; }
+    .weather-note textarea { width: 100%; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 10px 12px; font-size: 0.875rem; font-family: inherit; resize: none; outline: none; color: var(--gray-700); }
+    .weather-note textarea:focus { border-color: var(--blue); }
+
+    /* Pracovníci */
+    .workers-list { display: flex; flex-direction: column; gap: 10px; }
+    .worker-row { display: grid; grid-template-columns: 120px 1fr 1fr 40px; gap: 10px; align-items: center; }
+    .count-select, .prof-select, .firm-input {
+      border: 1.5px solid var(--gray-200); border-radius: 7px;
+      padding: 8px 10px; font-size: 0.875rem; font-family: inherit;
+      outline: none; background: #fff; width: 100%;
+    }
+    .count-select:focus, .prof-select:focus, .firm-input:focus { border-color: var(--blue); }
+    .remove-btn { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 1.1rem; padding: 4px; border-radius: 4px; }
+    .remove-btn:hover { color: #ef4444; background: #fef2f2; }
+    .worker-header { display: grid; grid-template-columns: 120px 1fr 1fr 40px; gap: 10px; font-size: 0.72rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .add-worker-btn { margin-top: 8px; background: none; border: 1.5px dashed var(--gray-300); color: var(--gray-600); padding: 8px 16px; border-radius: 7px; cursor: pointer; font-size: 0.82rem; font-family: inherit; font-weight: 600; }
+    .add-worker-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-50); }
+    .workers-total { margin-top: 10px; padding: 8px 12px; background: var(--gray-50); border-radius: 7px; font-size: 0.82rem; color: var(--gray-600); font-weight: 600; }
+
+    /* Práce */
+    .prace-list { display: flex; flex-direction: column; gap: 14px; }
+    .prace-item { border: 1.5px solid var(--gray-200); border-radius: 10px; padding: 14px 16px; position: relative; }
+    .prace-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .prace-num { font-size: 0.75rem; font-weight: 700; color: var(--gray-400); }
+    .prace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .prace-field label { font-size: 0.75rem; font-weight: 700; color: var(--gray-600); margin-bottom: 4px; display: block; }
+    .prace-field input, .prace-field select, .prace-field textarea {
+      width: 100%; border: 1.5px solid var(--gray-200); border-radius: 7px;
+      padding: 8px 10px; font-size: 0.875rem; font-family: inherit;
+      outline: none; background: #fff;
+    }
+    .prace-field input:focus, .prace-field select:focus, .prace-field textarea:focus { border-color: var(--blue); }
+    .prace-field.full { grid-column: 1 / -1; }
+    .rozsah-row { display: flex; gap: 8px; }
+    .rozsah-row input { flex: 1; }
+    .rozsah-row select { width: 90px; }
+    .kategorie-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .kat-chip { padding: 5px 12px; border-radius: 100px; border: 1.5px solid var(--gray-200); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; background: #fff; color: var(--gray-600); transition: all 0.1s; }
+    .kat-chip:hover { border-color: var(--blue); color: var(--blue); }
+    .kat-chip.sel { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .add-prace-btn { width: 100%; background: none; border: 1.5px dashed var(--gray-300); color: var(--gray-600); padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 600; margin-top: 4px; }
+    .add-prace-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-50); }
+
+    /* Šablony */
+    .template-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tpl-btn { padding: 5px 12px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--gray-700); font-family: inherit; }
+    .tpl-btn:hover { background: var(--blue-50); border-color: var(--blue); color: var(--blue); }
+
+    /* Mechanizace */
+    .mech-selected { display: flex; flex-wrap: wrap; gap: 10px; min-height: 42px; margin-bottom: 12px; }
+    .mech-card { display: flex; align-items: center; gap: 10px; background: var(--blue-50); border: 1.5px solid var(--blue-l); border-radius: 9px; padding: 8px 12px; }
+    .mech-card-icon { font-size: 1.4rem; }
+    .mech-card-info { flex: 1; }
+    .mech-card-name { font-size: 0.875rem; font-weight: 700; color: var(--gray-800); }
+    .mech-card-spz { font-size: 0.75rem; color: var(--gray-500); font-family: monospace; letter-spacing: 0.05em; }
+    .mech-card-remove { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 1rem; padding: 2px 4px; border-radius: 4px; }
+    .mech-card-remove:hover { color: #ef4444; background: #fef2f2; }
+    .add-mech-btn { background: none; border: 1.5px dashed var(--gray-300); color: var(--gray-600); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .add-mech-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-50); }
+    .mech-empty { color: var(--gray-400); font-size: 0.85rem; padding: 8px 0; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 16px; width: 540px; max-width: 95vw; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
+    .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1rem; font-weight: 800; color: var(--gray-800); }
+    .modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--gray-400); padding: 2px 6px; border-radius: 4px; }
+    .modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
+    .modal-search { padding: 12px 22px; border-bottom: 1px solid var(--gray-200); }
+    .modal-search input { width: 100%; border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 9px 12px; font-size: 0.875rem; font-family: inherit; outline: none; }
+    .modal-search input:focus { border-color: var(--blue); }
+    .modal-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .modal-group-label { font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 22px 4px; }
+    .mech-option { display: flex; align-items: center; gap: 12px; padding: 10px 22px; cursor: pointer; transition: background 0.1s; }
+    .mech-option:hover { background: var(--gray-50); }
+    .mech-option.chosen { background: var(--blue-50); }
+    .mech-option-icon { font-size: 1.5rem; width: 36px; text-align: center; }
+    .mech-option-info { flex: 1; }
+    .mech-option-name { font-size: 0.875rem; font-weight: 700; color: var(--gray-800); }
+    .mech-option-detail { font-size: 0.75rem; color: var(--gray-500); }
+    .mech-spz-badge { font-size: 0.72rem; font-weight: 700; font-family: monospace; background: var(--gray-800); color: #fff; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.08em; }
+    .mech-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--gray-300); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; }
+    .mech-option.chosen .mech-check { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .modal-footer { padding: 14px 22px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+    .modal-footer .btn-cancel { background: var(--gray-100); border: 1.5px solid var(--gray-200); color: var(--gray-700); padding: 9px 20px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; font-family: inherit; }
+    .modal-footer .btn-confirm { background: var(--blue); color: #fff; padding: 9px 20px; border-radius: 8px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: none; font-family: inherit; }
+    .modal-footer .btn-confirm:hover { background: var(--blue-d); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #fff; padding: 12px 22px; border-radius: 9px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transform: translateY(80px); transition: transform 0.3s; z-index: 999; }
+    .toast.show { transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="dashboard.html" class="topbar-logo"><span>🏗️</span> Stavební deník</a>
+    <div class="breadcrumb">
+      / <a href="dashboard.html">Moje stavby</a>
+      / <strong>Bytový dům Prosecká</strong>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="avatar">JN</div>
+    <span style="font-size:.85rem">Jan Novák</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar: seznam dnů -->
+  <aside class="day-sidebar">
+    <div class="day-sidebar-header">
+      <h3>📖 Deník stavby</h3>
+      <div class="month-nav">
+        <button>‹</button>
+        <span class="month-label">Duben 2025</span>
+        <button>›</button>
+      </div>
+      <button class="btn-new-day" onclick="newDay()">＋ Přidat dnešní zápis</button>
+    </div>
+    <div class="day-list" id="day-list">
+      <!-- generováno JS -->
+    </div>
+  </aside>
+
+  <!-- Hlavní obsah -->
+  <main class="main">
+    <div class="stavba-info">
+      <span class="stavba-info-name">Bytový dům Prosecká</span>
+      <span class="badge-sm">Probíhá</span>
+      <span class="stavba-info-item">📍 Prosecká 14, Praha 9</span>
+      <span class="stavba-info-item">🗓 Zahájení: 3. 2. 2025</span>
+      <span class="stavba-info-item">👷 Stavbyvedoucí: Jan Novák</span>
+    </div>
+
+    <div class="day-content">
+      <div class="day-title">
+        <div class="day-date-big">Středa 23. dubna 2025 <span>Den č. 78</span></div>
+        <button class="btn-save" onclick="saveDay()">💾 Uložit zápis</button>
+      </div>
+
+      <!-- Počasí -->
+      <div class="section">
+        <div class="section-title">🌤 Počasí</div>
+        <div class="weather-chips">
+          <button class="weather-chip" onclick="selectWeather(this)">☀️ Slunečno</button>
+          <button class="weather-chip selected" onclick="selectWeather(this)">⛅ Polojasno</button>
+          <button class="weather-chip" onclick="selectWeather(this)">☁️ Zataženo</button>
+          <button class="weather-chip" onclick="selectWeather(this)">🌦 Přeháňky</button>
+          <button class="weather-chip" onclick="selectWeather(this)">🌧 Déšť</button>
+          <button class="weather-chip" onclick="selectWeather(this)">⛈ Bouřka</button>
+          <button class="weather-chip" onclick="selectWeather(this)">🌨 Sníh</button>
+          <button class="weather-chip" onclick="selectWeather(this)">🌫 Mlha</button>
+          <button class="weather-chip" onclick="selectWeather(this)">🥶 Mráz</button>
+          <button class="weather-chip" onclick="selectWeather(this)">💨 Silný vítr</button>
+        </div>
+        <div class="weather-note">
+          <textarea rows="2" placeholder="Vliv počasí na práci (nepovinné)… např. odpolední déšť zpomalil betonáž">Ráno polojasno, odpoledne se přitáhly mraky. Práce nebyla ovlivněna.</textarea>
+        </div>
+      </div>
+
+      <!-- Pracovníci -->
+      <div class="section">
+        <div class="section-title">👷 Pracovníci na stavbě</div>
+        <div class="worker-header">
+          <div>Počet osob</div>
+          <div>Profese / řemeslo</div>
+          <div>Firma / subdodavatel</div>
+          <div></div>
+        </div>
+        <div class="workers-list" id="workers-list">
+          <div class="worker-row">
+            <select class="count-select">
+              <option>1</option><option>2</option><option>3</option><option selected>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>12</option><option>15</option><option>20</option>
+            </select>
+            <select class="prof-select">
+              <option>Zedník</option><option>Betonář</option><option>Tesař</option>
+              <option>Železář</option><option>Instalatér</option><option>Elektrikář</option>
+              <option>Malíř / natěrač</option><option>Obkladač</option><option>Podlahář</option>
+              <option>Klempíř</option><option>Lešenář</option><option>Řidič / strojník</option>
+              <option>Stavbyvedoucí</option><option>Jiné</option>
+            </select>
+            <input class="firm-input" value="Novák s.r.o." placeholder="Firma..." />
+            <button class="remove-btn" onclick="removeRow(this)">✕</button>
+          </div>
+          <div class="worker-row">
+            <select class="count-select">
+              <option>1</option><option>2</option><option selected>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>12</option><option>15</option><option>20</option>
+            </select>
+            <select class="prof-select">
+              <option>Zedník</option><option>Betonář</option><option selected>Tesař</option>
+              <option>Železář</option><option>Instalatér</option><option>Elektrikář</option>
+              <option>Malíř / natěrač</option><option>Obkladač</option><option>Podlahář</option>
+              <option>Klempíř</option><option>Lešenář</option><option>Řidič / strojník</option>
+              <option>Stavbyvedoucí</option><option>Jiné</option>
+            </select>
+            <input class="firm-input" value="Dřevomont s.r.o." placeholder="Firma..." />
+            <button class="remove-btn" onclick="removeRow(this)">✕</button>
+          </div>
+          <div class="worker-row">
+            <select class="count-select">
+              <option>1</option><option selected>2</option><option>3</option>
+            </select>
+            <select class="prof-select">
+              <option>Zedník</option><option>Betonář</option><option>Tesař</option>
+              <option>Železář</option><option selected>Instalatér</option><option>Elektrikář</option>
+            </select>
+            <input class="firm-input" value="VodoTech s.r.o." placeholder="Firma..." />
+            <button class="remove-btn" onclick="removeRow(this)">✕</button>
+          </div>
+        </div>
+        <button class="add-worker-btn" onclick="addWorker()">＋ Přidat skupinu pracovníků</button>
+        <div class="workers-total" id="workers-total">Celkem na stavbě: <strong>9 pracovníků</strong></div>
+      </div>
+
+      <!-- Mechanizace -->
+      <div class="section">
+        <div class="section-title">🚜 Mechanizace a technika</div>
+        <div class="mech-selected" id="mech-selected"></div>
+        <button class="add-mech-btn" onclick="openMechModal()">＋ Přidat techniku</button>
+      </div>
+
+      <!-- Prováděné práce -->
+      <div class="section">
+        <div class="section-title">🔨 Prováděné práce</div>
+
+        <div style="margin-bottom:12px;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Šablony (rychlé přidání)</div>
+          <div class="template-bar">
+            <button class="tpl-btn" onclick="addFromTemplate('beton')">🏗 Betonáž stropní desky</button>
+            <button class="tpl-btn" onclick="addFromTemplate('zdeni')">🧱 Zdění nosných stěn</button>
+            <button class="tpl-btn" onclick="addFromTemplate('lezeni')">🪜 Montáž lešení</button>
+            <button class="tpl-btn" onclick="addFromTemplate('rozvody')">🔌 Rozvody instalací</button>
+            <button class="tpl-btn" onclick="addFromTemplate('omitka')">🪣 Omítky</button>
+          </div>
+        </div>
+
+        <div class="prace-list" id="prace-list">
+
+          <!-- Práce 1 -->
+          <div class="prace-item">
+            <div class="prace-item-header">
+              <span class="prace-num">Práce č. 1</span>
+              <button class="remove-btn" onclick="this.closest('.prace-item').remove()">✕ Odebrat</button>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--gray-600); margin-bottom:6px;">Kategorie prací:</div>
+              <div class="kategorie-chips">
+                <button class="kat-chip" onclick="toggleKat(this)">Zemní práce</button>
+                <button class="kat-chip sel" onclick="toggleKat(this)">Betonáž</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Zdění</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Tesařské práce</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Železářské práce</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Instalace</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Elektro</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Omítky</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Obklady/dlažby</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Podlahy</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Střecha</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Lešení</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Bourání</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Jiné</button>
+              </div>
+            </div>
+            <div class="prace-grid">
+              <div class="prace-field full">
+                <label>Přesný popis činnosti *</label>
+                <textarea rows="2" placeholder="Popište co přesně bylo prováděno…">Betonáž stropní desky nad 2.NP — čerpadlo beton C25/30, tloušťka desky 200 mm.</textarea>
+              </div>
+              <div class="prace-field">
+                <label>Místo na stavbě</label>
+                <select>
+                  <option>2. nadzemní podlaží</option>
+                  <option>1. nadzemní podlaží</option>
+                  <option>Přízemí</option>
+                  <option>Suterén</option>
+                  <option>Střecha</option>
+                  <option>Fasáda</option>
+                  <option>Vnější plochy</option>
+                  <option>Jiné místo…</option>
+                </select>
+              </div>
+              <div class="prace-field">
+                <label>Rozsah prací</label>
+                <div class="rozsah-row">
+                  <input type="number" value="185" placeholder="Množství" />
+                  <select>
+                    <option>m²</option><option>m³</option><option>bm</option>
+                    <option>ks</option><option>hod</option><option>t</option><option>—</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Práce 2 -->
+          <div class="prace-item">
+            <div class="prace-item-header">
+              <span class="prace-num">Práce č. 2</span>
+              <button class="remove-btn" onclick="this.closest('.prace-item').remove()">✕ Odebrat</button>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--gray-600); margin-bottom:6px;">Kategorie prací:</div>
+              <div class="kategorie-chips">
+                <button class="kat-chip" onclick="toggleKat(this)">Zemní práce</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Betonáž</button>
+                <button class="kat-chip sel" onclick="toggleKat(this)">Zdění</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Tesařské práce</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Železářské práce</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Instalace</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Elektro</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Omítky</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Obklady/dlažby</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Podlahy</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Střecha</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Lešení</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Bourání</button>
+                <button class="kat-chip" onclick="toggleKat(this)">Jiné</button>
+              </div>
+            </div>
+            <div class="prace-grid">
+              <div class="prace-field full">
+                <label>Přesný popis činnosti *</label>
+                <textarea rows="2" placeholder="Popište co přesně bylo prováděno…">Zdění příček 3.NP — tvárnice Ytong 150 mm, malta Ytong.</textarea>
+              </div>
+              <div class="prace-field">
+                <label>Místo na stavbě</label>
+                <select>
+                  <option>2. nadzemní podlaží</option>
+                  <option>1. nadzemní podlaží</option>
+                  <option selected>3. nadzemní podlaží</option>
+                  <option>Přízemí</option>
+                  <option>Suterén</option>
+                </select>
+              </div>
+              <div class="prace-field">
+                <label>Rozsah prací</label>
+                <div class="rozsah-row">
+                  <input type="number" value="48" placeholder="Množství" />
+                  <select><option>m²</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="add-prace-btn" onclick="addPrace()">＋ Přidat další práce</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:4px;">
+        <button style="background:var(--gray-100); border:1.5px solid var(--gray-200); color:var(--gray-700); padding:10px 20px; border-radius:8px; font-weight:600; font-size:0.875rem; cursor:pointer; font-family:inherit;">Zahodit změny</button>
+        <button class="btn-save" onclick="saveDay()">💾 Uložit zápis</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: výběr mechanizace -->
+<div class="modal-overlay" id="mech-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🚜 Vybrat techniku firmy</h3>
+      <button class="modal-close" onclick="closeMechModal()">✕</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="mech-search" placeholder="Hledat stroj nebo SPZ…" oninput="filterMech(this.value)" />
+    </div>
+    <div class="modal-body" id="mech-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeMechModal()">Zrušit</button>
+      <button class="btn-confirm" onclick="confirmMech()">Potvrdit výběr</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Zápis byl uložen</div>
+
+<script>
+  // Sidebar – dny
+  const days = [
+    { d:'23. 4.', label:'Středa', w:'⛅', note:'9 pracovníků', done:true, active:true },
+    { d:'22. 4.', label:'Úterý',  w:'☀️', note:'11 pracovníků', done:true },
+    { d:'17. 4.', label:'Čtvrtek',w:'🌧', note:'5 pracovníků, déšť', done:true },
+    { d:'16. 4.', label:'Středa', w:'☀️', note:'10 pracovníků', done:true },
+    { d:'15. 4.', label:'Úterý',  w:'⛅', note:'9 pracovníků', done:true },
+    { d:'14. 4.', label:'Pondělí',w:'☁️', note:'8 pracovníků', done:true },
+    { d:'11. 4.', label:'Pátek',  w:'☀️', note:'12 pracovníků', done:true },
+    { d:'10. 4.', label:'Čtvrtek',w:'⛅', note:'10 pracovníků', done:true },
+  ];
+  const list = document.getElementById('day-list');
+  days.forEach(d => {
+    list.innerHTML += `
+      <div class="day-item ${d.active?'active':''}" onclick="selectDay(this)">
+        <div class="day-item-date">
+          <span>${d.label} ${d.d}</span>
+          <span class="weather-icon">${d.w}</span>
+        </div>
+        <div class="day-item-meta">${d.note}</div>
+      </div>`;
+  });
+
+  function selectDay(el) {
+    document.querySelectorAll('.day-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function selectWeather(btn) {
+    document.querySelectorAll('.weather-chip').forEach(c => c.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function toggleKat(btn) { btn.classList.toggle('sel'); }
+
+  function removeRow(btn) { btn.closest('.worker-row').remove(); updateTotal(); }
+
+  function addWorker() {
+    const list = document.getElementById('workers-list');
+    list.innerHTML += `
+      <div class="worker-row">
+        <select class="count-select">${[1,2,3,4,5,6,7,8,9,10,12,15,20].map(n=>`<option>${n}</option>`).join('')}</select>
+        <select class="prof-select">
+          <option>Zedník</option><option>Betonář</option><option>Tesař</option>
+          <option>Železář</option><option>Instalatér</option><option>Elektrikář</option>
+          <option>Malíř / natěrač</option><option>Obkladač</option><option>Podlahář</option>
+          <option>Klempíř</option><option>Lešenář</option><option>Řidič / strojník</option>
+          <option>Stavbyvedoucí</option><option>Jiné</option>
+        </select>
+        <input class="firm-input" placeholder="Firma / subdodavatel…" />
+        <button class="remove-btn" onclick="removeRow(this)">✕</button>
+      </div>`;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const rows = document.querySelectorAll('.worker-row');
+    let total = 0;
+    rows.forEach(r => { total += parseInt(r.querySelector('.count-select').value) || 0; });
+    document.getElementById('workers-total').innerHTML = `Celkem na stavbě: <strong>${total} pracovníků</strong>`;
+  }
+
+  let praceCount = 2;
+  function addPrace() {
+    praceCount++;
+    const kats = ['Zemní práce','Betonáž','Zdění','Tesařské práce','Železářské práce','Instalace','Elektro','Omítky','Obklady/dlažby','Podlahy','Střecha','Lešení','Bourání','Jiné'];
+    const list = document.getElementById('prace-list');
+    list.innerHTML += `
+      <div class="prace-item">
+        <div class="prace-item-header">
+          <span class="prace-num">Práce č. ${praceCount}</span>
+          <button class="remove-btn" onclick="this.closest('.prace-item').remove()">✕ Odebrat</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--gray-600);margin-bottom:6px;">Kategorie prací:</div>
+          <div class="kategorie-chips">${kats.map(k=>`<button class="kat-chip" onclick="toggleKat(this)">${k}</button>`).join('')}</div>
+        </div>
+        <div class="prace-grid">
+          <div class="prace-field full">
+            <label>Přesný popis činnosti *</label>
+            <textarea rows="2" placeholder="Popište co přesně bylo prováděno…"></textarea>
+          </div>
+          <div class="prace-field">
+            <label>Místo na stavbě</label>
+            <select>
+              <option>Přízemí</option><option>1. nadzemní podlaží</option><option>2. nadzemní podlaží</option>
+              <option>3. nadzemní podlaží</option><option>Suterén</option><option>Střecha</option>
+              <option>Fasáda</option><option>Vnější plochy</option><option>Jiné místo…</option>
+            </select>
+          </div>
+          <div class="prace-field">
+            <label>Rozsah prací</label>
+            <div class="rozsah-row">
+              <input type="number" placeholder="Množství" />
+              <select><option>m²</option><option>m³</option><option>bm</option><option>ks</option><option>hod</option><option>t</option><option>—</option></select>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  const templates = {
+    beton:   { kat:'Betonáž', popis:'Betonáž stropní desky — beton C25/30, tl. 200 mm.' },
+    zdeni:   { kat:'Zdění', popis:'Zdění nosných stěn — cihla Porotherm 30 P+D, malta M10.' },
+    lezeni:  { kat:'Lešení', popis:'Montáž fasádního lešení — sekce A.' },
+    rozvody: { kat:'Instalace', popis:'Rozvody vody a kanalizace — 2. NP.' },
+    omitka:  { kat:'Omítky', popis:'Strojní omítky vnitřní — vápenná omítka tl. 15 mm.' },
+  };
+  function addFromTemplate(key) {
+    praceCount++;
+    const t = templates[key];
+    const kats = ['Zemní práce','Betonáž','Zdění','Tesařské práce','Železářské práce','Instalace','Elektro','Omítky','Obklady/dlažby','Podlahy','Střecha','Lešení','Bourání','Jiné'];
+    const list = document.getElementById('prace-list');
+    list.innerHTML += `
+      <div class="prace-item">
+        <div class="prace-item-header">
+          <span class="prace-num">Práce č. ${praceCount} <span style="color:var(--blue);font-size:0.7rem;">(ze šablony)</span></span>
+          <button class="remove-btn" onclick="this.closest('.prace-item').remove()">✕ Odebrat</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--gray-600);margin-bottom:6px;">Kategorie prací:</div>
+          <div class="kategorie-chips">${kats.map(k=>`<button class="kat-chip${k===t.kat?' sel':''}" onclick="toggleKat(this)">${k}</button>`).join('')}</div>
+        </div>
+        <div class="prace-grid">
+          <div class="prace-field full">
+            <label>Přesný popis činnosti *</label>
+            <textarea rows="2">${t.popis}</textarea>
+          </div>
+          <div class="prace-field">
+            <label>Místo na stavbě</label>
+            <select>
+              <option>Přízemí</option><option>1. nadzemní podlaží</option><option>2. nadzemní podlaží</option>
+              <option>3. nadzemní podlaží</option><option>Suterén</option><option>Střecha</option>
+              <option>Fasáda</option><option>Vnější plochy</option><option>Jiné místo…</option>
+            </select>
+          </div>
+          <div class="prace-field">
+            <label>Rozsah prací</label>
+            <div class="rozsah-row">
+              <input type="number" placeholder="Množství" />
+              <select><option>m²</option><option>m³</option><option>bm</option><option>ks</option><option>hod</option><option>t</option><option>—</option></select>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Mechanizace ──────────────────────────────────────────
+  const companyMachines = [
+    { id:1, icon:'🏗️', name:'Autojeřáb Liebherr LTM 1050',   type:'Jeřáb',               spz:'1AB 1234' },
+    { id:2, icon:'🚛', name:'Tatra 815 sklápěč',              type:'Nákladní vozidlo',     spz:'2CD 5678' },
+    { id:3, icon:'🚜', name:'Pásový dozer Komatsu D61',       type:'Dozer',               spz:'3EF 9012' },
+    { id:4, icon:'⛏️', name:'Pásové rypadlo CAT 320',         type:'Rypadlo',             spz:'4GH 3456' },
+    { id:5, icon:'🔵', name:'Čerpadlo betonu Schwing S47',    type:'Čerpadlo betonu',      spz:'5IJ 7890' },
+    { id:6, icon:'🚐', name:'VW Crafter – pojízdná dílna',   type:'Servisní vozidlo',     spz:'6KL 2345' },
+    { id:7, icon:'🚧', name:'Vibrační válec Bomag BW213',     type:'Válec',               spz:'7MN 6789' },
+    { id:8, icon:'🔧', name:'Smykový nakladač Bobcat S650',   type:'Nakladač',            spz:'8OP 1234' },
+  ];
+
+  let modalSelected = new Set();
+  const addedMachines = {};
+
+  function openMechModal() {
+    modalSelected = new Set(Object.keys(addedMachines).map(Number));
+    document.getElementById('mech-search').value = '';
+    renderModalMachines(companyMachines);
+    document.getElementById('mech-modal').classList.add('open');
+  }
+
+  function closeMechModal() {
+    document.getElementById('mech-modal').classList.remove('open');
+  }
+
+  function renderModalMachines(machines) {
+    const body = document.getElementById('mech-modal-body');
+    if (!machines.length) {
+      body.innerHTML = '<div style="padding:24px 22px;color:var(--gray-400);text-align:center;">Žádné výsledky</div>';
+      return;
+    }
+    const groups = {};
+    machines.forEach(m => { if (!groups[m.type]) groups[m.type] = []; groups[m.type].push(m); });
+    let html = '';
+    for (const [type, items] of Object.entries(groups)) {
+      html += `<div class="modal-group-label">${type}</div>`;
+      items.forEach(m => {
+        const chosen = modalSelected.has(m.id) ? 'chosen' : '';
+        html += `<div class="mech-option ${chosen}" onclick="toggleMechOption(this,${m.id})" data-id="${m.id}">
+          <div class="mech-option-icon">${m.icon}</div>
+          <div class="mech-option-info">
+            <div class="mech-option-name">${m.name}</div>
+            <div class="mech-option-detail">${m.type}</div>
+          </div>
+          <span class="mech-spz-badge">${m.spz}</span>
+          <div class="mech-check">${modalSelected.has(m.id) ? '✓' : ''}</div>
+        </div>`;
+      });
+    }
+    body.innerHTML = html;
+  }
+
+  function toggleMechOption(el, id) {
+    if (modalSelected.has(id)) {
+      modalSelected.delete(id);
+      el.classList.remove('chosen');
+      el.querySelector('.mech-check').textContent = '';
+    } else {
+      modalSelected.add(id);
+      el.classList.add('chosen');
+      el.querySelector('.mech-check').textContent = '✓';
+    }
+  }
+
+  function filterMech(query) {
+    const q = query.toLowerCase();
+    renderModalMachines(companyMachines.filter(m =>
+      m.name.toLowerCase().includes(q) || m.spz.toLowerCase().includes(q) || m.type.toLowerCase().includes(q)
+    ));
+  }
+
+  function confirmMech() {
+    // Remove deselected
+    Object.keys(addedMachines).forEach(id => {
+      if (!modalSelected.has(Number(id))) {
+        const card = document.getElementById(`mech-card-${id}`);
+        if (card) card.remove();
+        delete addedMachines[id];
+      }
+    });
+    // Add newly selected
+    const container = document.getElementById('mech-selected');
+    modalSelected.forEach(id => {
+      if (!addedMachines[id]) {
+        const m = companyMachines.find(x => x.id === id);
+        if (!m) return;
+        addedMachines[id] = true;
+        const card = document.createElement('div');
+        card.className = 'mech-card';
+        card.id = `mech-card-${id}`;
+        card.innerHTML = `
+          <div class="mech-card-icon">${m.icon}</div>
+          <div class="mech-card-info">
+            <div class="mech-card-name">${m.name}</div>
+            <div class="mech-card-spz">${m.spz}</div>
+          </div>
+          <button class="mech-card-remove" onclick="removeMech(${id})" title="Odebrat">✕</button>`;
+        container.appendChild(card);
+      }
+    });
+    closeMechModal();
+  }
+
+  function removeMech(id) {
+    const card = document.getElementById(`mech-card-${id}`);
+    if (card) card.remove();
+    delete addedMachines[id];
+  }
+
+  // Close modal on overlay click
+  document.getElementById('mech-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeMechModal();
+  });
+  // ─────────────────────────────────────────────────────────
+
+  function newDay() {
+    showToast('📅 Nový zápis pro dnešní den byl připraven.');
+  }
+
+  function saveDay() {
+    showToast('✅ Zápis byl uložen');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
