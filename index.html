@@ -54,29 +54,12 @@
       position: relative;
     }
 
-    .logo-wrap::before {
-      content: '';
-      position: absolute;
-      inset: -12px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(60,184,67,0.3) 0%, transparent 70%);
-      filter: blur(20px);
-      z-index: 0;
-    }
-
     .logo-wrap img {
-      height: 210px;
+      height: 220px;
       width: auto;
       display: block;
-      border-radius: 50%;
-      background: #fff;
-      padding: 22px 28px;
-      position: relative;
-      z-index: 1;
-      box-shadow:
-        0 0 0 2px rgba(60,184,67,0.4),
-        0 0 0 8px rgba(60,184,67,0.1),
-        0 20px 60px rgba(0,0,0,0.5);
+      mix-blend-mode: screen;
+      filter: grayscale(1) brightness(0.65) contrast(50) invert(1) brightness(0.78);
     }
 
     .hero h1 {
