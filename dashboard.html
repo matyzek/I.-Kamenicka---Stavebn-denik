@@ -7,121 +7,124 @@
   <title>Stavební deník – Moje stavby</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Page-specific styles */
+    .main {
+      background: radial-gradient(ellipse at top, #dcfce7 0%, #f5fdf5 60%);
+      min-height: calc(100vh - 84px);
+    }
+
+    /* Page header */
     .page-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .page-title-sub {
       font-size: 0.78rem;
-      color: var(--subtle);
+      color: var(--muted);
       font-weight: 400;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     /* Stats */
     .stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 24px;
+      margin-bottom: 28px;
     }
 
     .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: none;
     }
 
     .stat-label {
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: var(--subtle);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
     }
 
     .stat-value {
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 2.8rem;
+      font-weight: 800;
       color: var(--text);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
       line-height: 1;
     }
 
-    .stat-value.green { color: var(--green); }
-    .stat-value.orange { color: var(--orange); }
+    .stat-value.green { color: var(--primary); }
+    .stat-value.orange { color: var(--warning); }
 
     .stat-sub {
       font-size: 0.72rem;
-      color: var(--subtle);
-      margin-top: 4px;
+      color: var(--muted);
+      margin-top: 6px;
     }
 
     /* Filters */
     .filters {
       display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 24px;
       flex-wrap: wrap;
     }
 
     .filter-btn {
-      padding: 5px 12px;
-      border-radius: 5px;
+      padding: 7px 16px;
+      border-radius: 99px;
       border: 1px solid var(--border);
-      background: var(--surface);
-      font-size: 0.78rem;
+      background: var(--card);
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       color: var(--muted);
       font-family: inherit;
-      transition: all 0.1s;
+      transition: all 0.2s ease;
     }
 
     .filter-btn:hover {
-      border-color: var(--border-2);
-      color: var(--text);
-      background: var(--bg);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+      background: var(--primary-pale);
     }
 
     .filter-btn.active {
-      background: var(--slate);
+      background: var(--primary);
       color: #fff;
-      border-color: var(--slate);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(60,184,67,0.3);
     }
 
     /* Project grid */
     .stavby-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 14px;
+      gap: 24px;
     }
 
     .stavba-card {
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 20px;
       overflow: hidden;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
       cursor: pointer;
       text-decoration: none;
       color: inherit;
       display: block;
     }
 
-    .stavba-card:hover {
-      border-color: var(--border-2);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    .stavba-card.warn {
+      border-left: 4px solid var(--danger);
     }
 
     .stavba-header {
-      padding: 14px 16px 12px;
+      padding: 18px 20px 14px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -130,32 +133,32 @@
     }
 
     .stavba-name {
-      font-weight: 600;
-      font-size: 0.9rem;
+      font-weight: 700;
+      font-size: 0.95rem;
       color: var(--text);
-      margin-bottom: 2px;
+      margin-bottom: 3px;
       letter-spacing: -0.01em;
     }
 
     .stavba-addr {
       font-size: 0.75rem;
-      color: var(--subtle);
+      color: var(--muted);
     }
 
     .stavba-body {
-      padding: 12px 16px;
+      padding: 16px 20px;
     }
 
     .stavba-meta {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
     .meta-label {
       font-size: 0.65rem;
-      color: var(--subtle);
+      color: var(--muted);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -175,55 +178,64 @@
     .progress-label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
-      color: var(--subtle);
-      margin-bottom: 5px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
     }
 
     .progress-bar {
-      height: 4px;
+      height: 6px;
       background: var(--border);
-      border-radius: 100px;
+      border-radius: 99px;
       overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      border-radius: 100px;
-      background: var(--green);
+      border-radius: 99px;
+      background: linear-gradient(90deg, #2a8a30, #6dd174);
     }
 
     .stavba-footer {
-      padding: 10px 16px;
+      padding: 12px 20px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg);
+      background: var(--primary-pale);
     }
 
     .last-entry {
       font-size: 0.72rem;
-      color: var(--subtle);
+      color: var(--muted);
     }
 
     .last-entry.warn {
-      color: var(--orange);
-      font-weight: 500;
+      color: var(--danger);
+      font-weight: 600;
     }
 
     .open-btn {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--green-d);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary-dark);
       background: transparent;
       border: none;
       padding: 0;
       cursor: pointer;
       font-family: inherit;
+      transition: color 0.15s;
     }
 
-    .open-btn:hover { color: var(--green); }
+    .open-btn:hover { color: var(--primary); }
+
+    @keyframes grow {
+      from { width: 0% }
+      to   { width: var(--w) }
+    }
+
+    .anim { animation: grow 0.9s cubic-bezier(0.4,0,0.2,1) forwards; }
   </style>
 </head>
 <body>
@@ -332,7 +344,7 @@
           </div>
           <div class="progress-bar-wrap">
             <div class="progress-label"><span>Průběh stavby</span><span>38 %</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:38%"></div></div>
+            <div class="progress-bar"><div class="progress-fill anim" style="--w:38%;width:38%"></div></div>
           </div>
         </div>
         <div class="stavba-footer">
@@ -370,7 +382,7 @@
           </div>
           <div class="progress-bar-wrap">
             <div class="progress-label"><span>Průběh stavby</span><span>62 %</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:62%"></div></div>
+            <div class="progress-bar"><div class="progress-fill anim" style="--w:62%;width:62%"></div></div>
           </div>
         </div>
         <div class="stavba-footer">
@@ -379,7 +391,7 @@
         </div>
       </a>
 
-      <a class="stavba-card" href="denik.html">
+      <a class="stavba-card warn" href="denik.html">
         <div class="stavba-header">
           <div>
             <div class="stavba-name">Průmyslová hala Kladno</div>
@@ -408,7 +420,7 @@
           </div>
           <div class="progress-bar-wrap">
             <div class="progress-label"><span>Průběh stavby</span><span>22 %</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:22%"></div></div>
+            <div class="progress-bar"><div class="progress-fill anim" style="--w:22%;width:22%"></div></div>
           </div>
         </div>
         <div class="stavba-footer">
