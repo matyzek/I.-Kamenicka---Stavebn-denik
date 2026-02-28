@@ -40,7 +40,7 @@ body {
   background: var(--green);
   color: #fff;
   padding: 0 24px;
-  height: 68px;
+  height: 84px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -79,10 +79,11 @@ body {
 }
 
 .topbar-logo-img {
-  height: 50px;
+  height: 72px;
+  width: auto;
   border-radius: 6px;
   background: #fff;
-  padding: 3px 8px;
+  padding: 4px 10px;
   flex-shrink: 0;
   display: block;
 }
