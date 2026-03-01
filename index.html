@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      background: linear-gradient(170deg, #071a09 0%, #0f3d14 35%, #1a5c20 65%, #0d2e11 100%);
+      background: linear-gradient(170deg, #133d18 0%, #1e6b24 35%, #2d8a36 65%, #163d1a 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -58,7 +58,7 @@
       width: auto;
       display: block;
       mix-blend-mode: screen;
-      filter: grayscale(1) invert(1) brightness(2.2);
+      filter: grayscale(1) invert(1) brightness(2.2) contrast(2);
     }
 
     .hero h1 {
@@ -187,6 +187,17 @@
       color: rgba(255,255,255,0.2);
       letter-spacing: 0.04em;
     }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero        { animation: fadeUp 0.55s ease both; }
+    .profiles-wrap { animation: fadeUp 0.55s 0.15s ease both; }
+    .version     { animation: fadeUp 0.4s 0.3s ease both; }
+
+    .user-btn    { animation: fadeUp 0.4s ease both; }
   </style>
 </head>
 <body>
@@ -232,15 +243,15 @@
     const admins = USERS.filter(u => u.role === 'admin');
     const users  = USERS.filter(u => u.role === 'user');
 
-    document.getElementById('grid-admin').innerHTML = admins.map(u => `
-      <button class="user-btn admin" onclick="login('${u.name}', '${u.role}')">
+    document.getElementById('grid-admin').innerHTML = admins.map((u, i) => `
+      <button class="user-btn admin" onclick="login('${u.name}', '${u.role}')" style="animation-delay:${0.2 + i * 0.06}s">
         <div class="u-avatar">${initials(u.name)}</div>
         <div class="u-name">${u.name}</div>
         <div class="u-role">${u.title}</div>
       </button>`).join('');
 
-    document.getElementById('grid-users').innerHTML = users.map(u => `
-      <button class="user-btn" onclick="login('${u.name}', '${u.role}')">
+    document.getElementById('grid-users').innerHTML = users.map((u, i) => `
+      <button class="user-btn" onclick="login('${u.name}', '${u.role}')" style="animation-delay:${0.35 + i * 0.06}s">
         <div class="u-avatar">${initials(u.name)}</div>
         <div class="u-name">${u.name}</div>
         <div class="u-role">${u.title}</div>
