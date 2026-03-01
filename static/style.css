@@ -833,3 +833,64 @@ a:hover { color: var(--green-d); }
 .stavby-grid .stavba-card:nth-child(4) { animation-delay: 0.33s; }
 .stavby-grid .stavba-card:nth-child(5) { animation-delay: 0.40s; }
 .stavby-grid .stavba-card:nth-child(6) { animation-delay: 0.47s; }
+
+/* ===== MOBILNÍ RESPONZIVITA ===== */
+@media (max-width: 768px) {
+
+  /* Topbar */
+  .topbar { height: auto; padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  .topbar-right { gap: 6px; }
+  .topbar-nav { display: none; }
+  .topbar-logo-img { height: 32px; }
+  .topbar-user-name { display: none; }
+
+  /* Layout — sidebar schovat, main přes celou šířku */
+  .layout { flex-direction: column; min-height: auto; }
+  .sidebar { width: 100%; height: auto; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .sidebar.open { max-height: 500px; }
+  .main { width: 100% !important; padding: 16px !important; }
+
+  /* Deník — dvoupanelový layout → jeden sloupec */
+  .layout > .day-sidebar { width: 100%; height: auto; max-height: 280px; flex-shrink: 0; }
+  .layout > .main { flex: 1; }
+
+  /* Dashboard karty */
+  .stavba-card { margin-bottom: 12px; }
+  .stavby-grid { grid-template-columns: 1fr !important; gap: 12px; }
+
+  /* Pracovníci tabulka */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Formuláře */
+  .day-content { padding: 12px 16px; }
+  .form-row { flex-direction: column; }
+  .worker-row { flex-wrap: wrap; gap: 6px; }
+
+  /* Tlačítka */
+  .btn-primary, .btn-outline { width: 100%; justify-content: center; }
+  .topbar-actions { flex-direction: column; gap: 8px; }
+
+  /* Počasí chipy — wrap */
+  .weather-chips { flex-wrap: wrap; gap: 6px; }
+  .weather-chip { flex: 1; min-width: 80px; text-align: center; }
+
+  /* Kalendář */
+  .calendar-grid { grid-template-columns: repeat(7, 1fr); font-size: 0.7rem; }
+  .cal-day { padding: 6px 2px; }
+
+  /* Modaly přes celou obrazovku */
+  .modal { padding: 12px; }
+  .modal-box { width: 100%; max-width: 100%; border-radius: 16px; }
+
+  /* Nadřízený dashboard */
+  .stats-row { grid-template-columns: 1fr 1fr !important; }
+  .stavby-list { padding: 0 12px; }
+
+}
+
+@media (max-width: 480px) {
+  .topbar { padding: 8px 12px; }
+  .day-content { padding: 10px 12px; }
+  .stats-row { grid-template-columns: 1fr !important; }
+  .topbar-logo-text { font-size: 0.85rem; }
+}
